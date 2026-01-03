@@ -16,8 +16,8 @@ help: ## Show this help message
 
 build: ## Build the binary
 	@echo "Building $(BINARY_NAME)..."
-	@go build -o $(BINARY_NAME) .
-	@echo "✓ Build complete: ./$(BINARY_NAME)"
+	@go build -o ./tmp/$(BINARY_NAME) .
+	@echo "✓ Build complete: ./tmp/$(BINARY_NAME)"
 
 install: ## Install the CLI tool to GOPATH/bin
 	@echo "Installing $(BINARY_NAME) to $(INSTALL_PATH)..."
