@@ -38,7 +38,7 @@ func detectOS() string {
 func (s *Shell) GetCompleteCmd(cmd string) string {
 	cmd = strings.TrimSpace(cmd)
 
-	if s.os == "windows" {
+	if strings.ToLower(s.os) == "windows" {
 		cmd = strings.ReplaceAll(cmd, `"`, `\"`)
 		if s.Name == "powershell" || s.Name == "pwsh" {
 			return fmt.Sprintf("%s -NoExit -Command \"& {%s}\"", s.BinPath, cmd)

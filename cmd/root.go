@@ -19,7 +19,7 @@ var RootCmd = &cobra.Command{
 			return
 		}
 
-		if hasNtmuxConfigFileInRoot() {
+		if hasNtmuxConfigFileInRoot() && len(args) == 0 {
 			ApplyCmd.Run(cmd, []string{})
 			return
 		}
@@ -55,13 +55,15 @@ func printUnifiedHelp(cmd *cobra.Command) {
 }
 
 func hasNtmuxConfigFileInRoot() bool {
-	_, err := os.Stat("ntmux.json")
-	if err == nil {
-		return true
+	entries, err := os.ReadDir(".")
+	if err != nil {
+		return false
 	}
-	_, err = os.Stat("ntmux.yaml")
-	if err == nil {
-		return true
+
+	for _, entry := range entries {
+		if !entry.IsDir() && (entry.Name() == "ntmux.json" || entry.Name() == "ntmux.yaml") {
+			return true
+		}
 	}
 	return false
 }

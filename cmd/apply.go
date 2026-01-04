@@ -30,15 +30,20 @@ var ApplyCmd = &cobra.Command{
 			return
 		}
 
+		shell := tmux.GetShell()
+		runner := tmux.NewRunner(shell)
+
 		for _, session := range templ.Sessions {
 			firstWindow := session.Windows[0]
-			tmux.NewSession(session.Name, session.Dir, firstWindow.Name, firstWindow.Cmd, true)
+			runner.NewSession(session.Name, session.Dir, firstWindow.Name, firstWindow.Cmd, true)
+
 			for i, window := range session.Windows {
 				if i == 0 {
 					continue
 				}
-				tmux.NewWindow(session.Name, window.Name, window.Dir, window.Cmd)
+				runner.NewWindow(session.Name, window.Name, window.Dir, window.Cmd)
 			}
+
 			defaultWindow := session.Windows[0]
 			for _, window := range session.Windows {
 				if window.Default {
@@ -46,7 +51,7 @@ var ApplyCmd = &cobra.Command{
 					break
 				}
 			}
-			tmux.SelectWindow(session.Name, defaultWindow.Name)
+			runner.SelectWindow(session.Name, defaultWindow.Name)
 		}
 
 		var defaultSession string
@@ -58,8 +63,10 @@ var ApplyCmd = &cobra.Command{
 		}
 
 		if defaultSession != "" {
-			tmux.AttachSession(defaultSession)
+			runner.AttachSession(defaultSession)
 		}
+
+		runner.Execute()
 	},
 }
 
@@ -68,13 +75,18 @@ func getTemplatePath(args []string) (string, error) {
 		return args[0], nil
 	}
 
-	if hasNtmuxConfigFileInRoot() {
-		file, err := os.Stat("ntmux.json")
-		if err == nil && !file.IsDir() {
+	entries, err := os.ReadDir(".")
+	if err != nil {
+		return "", os.ErrNotExist
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() && entry.Name() == "ntmux.json" {
 			return "ntmux.json", nil
 		}
-		file, err = os.Stat("ntmux.yaml")
-		if err == nil && !file.IsDir() {
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() && entry.Name() == "ntmux.yaml" {
 			return "ntmux.yaml", nil
 		}
 	}
