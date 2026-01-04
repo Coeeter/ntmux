@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"os"
 	"strings"
 
 	"github.com/coeeter/ntmux/internal/tmux"
@@ -15,6 +16,11 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if isHelpCommand(args) {
 			printUnifiedHelp(cmd)
+			return
+		}
+
+		if hasNtmuxConfigFileInRoot() {
+			ApplyCmd.Run(cmd, []string{})
 			return
 		}
 
@@ -46,6 +52,18 @@ func printUnifiedHelp(cmd *cobra.Command) {
 
 	outputStr := strings.ReplaceAll(string(output), "tmux", "ntmux")
 	cmd.Println(outputStr)
+}
+
+func hasNtmuxConfigFileInRoot() bool {
+	_, err := os.Stat("ntmux.json")
+	if err == nil {
+		return true
+	}
+	_, err = os.Stat("ntmux.yaml")
+	if err == nil {
+		return true
+	}
+	return false
 }
 
 func init() {

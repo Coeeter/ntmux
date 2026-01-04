@@ -12,9 +12,10 @@ var ApplyCmd = &cobra.Command{
 	Use:   "apply [template-file]",
 	Short: "Apply a tmux session template",
 	Run: func(cmd *cobra.Command, args []string) {
-		path := "ntmux.json"
-		if len(args) > 0 {
-			path = args[0]
+		path, err := getTemplatePath(args)
+		if err != nil {
+			cmd.Println("Error: No template file specified and no ntmux.json or ntmux.yaml found in the current directory.")
+			return
 		}
 
 		cwd, err := os.Getwd()
@@ -60,4 +61,23 @@ var ApplyCmd = &cobra.Command{
 			tmux.AttachSession(defaultSession)
 		}
 	},
+}
+
+func getTemplatePath(args []string) (string, error) {
+	if len(args) > 0 {
+		return args[0], nil
+	}
+
+	if hasNtmuxConfigFileInRoot() {
+		file, err := os.Stat("ntmux.json")
+		if err == nil && !file.IsDir() {
+			return "ntmux.json", nil
+		}
+		file, err = os.Stat("ntmux.yaml")
+		if err == nil && !file.IsDir() {
+			return "ntmux.yaml", nil
+		}
+	}
+
+	return "", os.ErrNotExist
 }
