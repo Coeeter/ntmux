@@ -1,4 +1,4 @@
-.PHONY: help build install uninstall test test-verbose test-cover clean run fmt vet deps tidy check
+.PHONY: help build install uninstall test test-verbose test-cover clean run fmt vet deps tidy check generate-schema
 
 # Variables
 BINARY_NAME=ntmux
@@ -75,3 +75,8 @@ tidy: ## Tidy go.mod and go.sum
 	@echo "✓ Dependencies tidied"
 
 check: fmt vet test ## Run format, vet, and tests
+
+generate-schema: ## Generate schema files (if applicable)
+	@echo "Generating schema files..."
+	go run ./tools/gen_schema.go
+	@echo "✓ Schema files generated"

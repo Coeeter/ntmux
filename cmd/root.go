@@ -47,3 +47,7 @@ func printUnifiedHelp(cmd *cobra.Command) {
 	outputStr := strings.ReplaceAll(string(output), "tmux", "ntmux")
 	cmd.Println(outputStr)
 }
+
+func init() {
+	RootCmd.AddCommand(ApplyCmd)
+}
