@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/coeeter/ntmux/internal/template/template",
+  "$ref": "#/$defs/Template",
+  "$defs": {
+    "Session": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        },
+        "windows": {
+          "items": {
+            "$ref": "#/$defs/Window"
+          },
+          "type": "array"
+        },
+        "default": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "windows"
+      ]
+    },
+    "Template": {
+      "properties": {
+        "sessions": {
+          "items": {
+            "$ref": "#/$defs/Session"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "sessions"
+      ]
+    },
+    "Window": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        },
+        "cmd": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name"
+      ]
+    }
+  }
+}

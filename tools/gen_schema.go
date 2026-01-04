@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	schemaFile = flag.String("schema", "ntmux_schema.json", "Output file for the JSON schema")
+	schemaFile = flag.String("schema", "schema.json", "Output file for the JSON schema")
 )
 
 func main() {
