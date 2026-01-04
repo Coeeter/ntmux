@@ -30,8 +30,12 @@ var ApplyCmd = &cobra.Command{
 		}
 
 		for _, session := range templ.Sessions {
-			tmux.NewSession(session.Name, session.Dir, true)
-			for _, window := range session.Windows {
+			firstWindow := session.Windows[0]
+			tmux.NewSession(session.Name, session.Dir, firstWindow.Name, firstWindow.Cmd, true)
+			for i, window := range session.Windows {
+				if i == 0 {
+					continue
+				}
 				tmux.NewWindow(session.Name, window.Name, window.Dir, window.Cmd)
 			}
 		}

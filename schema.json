@@ -30,6 +30,9 @@
     },
     "Template": {
       "properties": {
+        "$schema": {
+          "type": "string"
+        },
         "sessions": {
           "items": {
             "$ref": "#/$defs/Session"
@@ -40,6 +43,7 @@
       "additionalProperties": false,
       "type": "object",
       "required": [
+        "$schema",
         "sessions"
       ]
     },

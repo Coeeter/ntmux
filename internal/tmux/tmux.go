@@ -22,12 +22,22 @@ func IsInTmux() bool {
 	return os.Getenv("TMUX") != ""
 }
 
-func NewSession(sessionName, rootDir string, detached bool) {
+func SendKeys(target, keys string) {
+	PassThrough([]string{"send-keys", "-t", target, keys, "C-m"})
+}
+
+func NewSession(sessionName, rootDir, windowName, firstWindowCmd string, detached bool) {
 	args := []string{"new-session", "-s", sessionName, "-c", rootDir}
 	if detached {
 		args = append(args, "-d")
 	}
+	if windowName != "" {
+		args = append(args, "-n", windowName)
+	}
 	PassThrough(args)
+	if firstWindowCmd != "" {
+		SendKeys(sessionName+":"+windowName, firstWindowCmd)
+	}
 }
 
 func AttachSession(sessionName string) {
@@ -43,7 +53,6 @@ func NewWindow(sessionName, windowName, rootDir, command string) {
 	PassThrough(args)
 
 	if command != "" {
-		args = []string{"send-keys", "-t", sessionName + ":" + windowName, command, "C-m"}
-		PassThrough(args)
+		SendKeys(sessionName+":"+windowName, command)
 	}
 }
