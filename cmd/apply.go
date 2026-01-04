@@ -38,6 +38,14 @@ var ApplyCmd = &cobra.Command{
 				}
 				tmux.NewWindow(session.Name, window.Name, window.Dir, window.Cmd)
 			}
+			defaultWindow := session.Windows[0]
+			for _, window := range session.Windows {
+				if window.Default {
+					defaultWindow = window
+					break
+				}
+			}
+			tmux.SelectWindow(session.Name, defaultWindow.Name)
 		}
 
 		var defaultSession string

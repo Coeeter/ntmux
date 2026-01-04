@@ -56,3 +56,7 @@ func NewWindow(sessionName, windowName, rootDir, command string) {
 		SendKeys(sessionName+":"+windowName, command)
 	}
 }
+
+func SelectWindow(sessionName, windowName string) {
+	PassThrough([]string{"select-window", "-t", sessionName + ":" + windowName})
+}

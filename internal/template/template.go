@@ -9,9 +9,10 @@ import (
 )
 
 type Window struct {
-	Name string `json:"name" jsonSchema:"title=Window Name,description=Name of the tmux window"`
-	Dir  string `json:"dir,omitempty" jsonSchema:"title=Directory,description=Working directory for the window"`
-	Cmd  string `json:"cmd,omitempty" jsonSchema:"title=Command,description=Command to run in the window"`
+	Name    string `json:"name" jsonSchema:"title=Window Name,description=Name of the tmux window"`
+	Dir     string `json:"dir,omitempty" jsonSchema:"title=Directory,description=Working directory for the window"`
+	Cmd     string `json:"cmd,omitempty" jsonSchema:"title=Command,description=Command to run in the window"`
+	Default bool   `json:"default,omitempty" jsonSchema:"title=Default Window,description=Whether this window should be the default one in the session"`
 }
 
 type Session struct {
