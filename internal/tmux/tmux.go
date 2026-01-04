@@ -18,6 +18,14 @@ func PassThroughWithOutput(args []string) ([]byte, error) {
 	return cmd.CombinedOutput()
 }
 
+func HasSession(sessionName string) bool {
+	output, err := PassThroughWithOutput([]string{"has-session", "-t", sessionName})
+	if err != nil {
+		return false
+	}
+	return string(output) == ""
+}
+
 func IsInTmux() bool {
 	return os.Getenv("TMUX") != ""
 }

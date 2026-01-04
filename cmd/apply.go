@@ -34,6 +34,9 @@ var ApplyCmd = &cobra.Command{
 		runner := tmux.NewRunner(shell)
 
 		for _, session := range templ.Sessions {
+			if tmux.HasSession(session.Name) {
+				continue
+			}
 			firstWindow := session.Windows[0]
 			runner.NewSession(session.Name, session.Dir, firstWindow.Name, firstWindow.Cmd, true)
 

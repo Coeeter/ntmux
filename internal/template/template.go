@@ -23,7 +23,7 @@ type Session struct {
 }
 
 type Template struct {
-	Schema   string    `json:"$schema" jsonSchema:"title=JSON Schema,description=The JSON schema version"`
+	Schema   string    `json:"$schema,omitempty" jsonSchema:"title=JSON Schema,description=The JSON schema version"`
 	Sessions []Session `json:"sessions" jsonSchema:"title=Sessions,description=List of tmux sessions to create"`
 }
 
