@@ -12,7 +12,7 @@ var ApplyCmd = &cobra.Command{
 	Use:   "apply [template-file]",
 	Short: "Apply a tmux session template",
 	Run: func(cmd *cobra.Command, args []string) {
-		path := "ntmux.yaml"
+		path := "ntmux.json"
 		if len(args) > 0 {
 			path = args[0]
 		}
