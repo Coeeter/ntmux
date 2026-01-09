@@ -71,4 +71,5 @@ func hasNtmuxConfigFileInRoot() bool {
 func init() {
 	RootCmd.AddCommand(ApplyCmd)
 	RootCmd.AddCommand(NewTemplateCmd)
+	RootCmd.AddCommand(StopCmd)
 }

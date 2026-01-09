@@ -89,3 +89,8 @@ func (r *TmuxRunner) Execute() {
 
 	PassThrough(args)
 }
+
+func (r *TmuxRunner) KillSession(sessionName string) {
+	args := []string{"kill-session", "-t", sessionName}
+	r.commands = append(r.commands, args)
+}
