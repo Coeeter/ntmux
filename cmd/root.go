@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/coeeter/ntmux/internal/tmux"
@@ -21,6 +22,19 @@ var RootCmd = &cobra.Command{
 
 		if hasNtmuxConfigFileInRoot() && len(args) == 0 {
 			ApplyCmd.Run(cmd, []string{})
+			return
+		}
+
+		// If no arguments are provided, create a new tmux session
+		if len(args) == 0 {
+			cwd, err := os.Getwd()
+			if err != nil {
+				tmux.PassThrough(args)
+				return
+			}
+
+			dirName := filepath.Base(cwd)
+			tmux.PassThrough([]string{"new-session", "-s", dirName})
 			return
 		}
 
