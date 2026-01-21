@@ -1,29 +1,32 @@
 # ntmux
 
-A powerful, declarative tmux session manager that simplifies the creation and management of complex tmux layouts through JSON or YAML configuration files.
+A declarative tmux session manager with a `tmux`-compatible CLI.
 
 ## Overview
 
-**ntmux** is a Go-based CLI tool that acts as an intelligent wrapper around tmux, allowing you to define your terminal workspace declaratively. Instead of manually creating sessions and windows with multiple commands, define your entire layout in a configuration file and apply it with a single command.
+**ntmux** is a Go-based CLI tool that wraps `tmux`:
+
+- If you run it in a directory that contains `ntmux.json`, `ntmux.yaml`, or `ntmux.yml`, it applies that template.
+- Otherwise, it behaves like `tmux` (pass-through), with a small convenience default: running `ntmux` with no args creates a new session named after your current directory.
 
 > **⚠️ Development Status**: This project is currently in active development. APIs, commands, and configuration formats may change in future releases.
 
 ### Key Features
 
-- **Declarative Configuration**: Define sessions, windows, and startup commands in JSON or YAML
-- **Idempotent Operations**: Safely re-run configurations without duplicating sessions
+- **Declarative configuration**: Define sessions, windows, and startup commands in JSON/YAML
+- **Safe re-runs (session-level)**: Existing sessions are skipped (ntmux does not reconcile/update them)
 - **Template System**: Create reusable templates for different projects or workflows
-- **Cross-Platform Support**: Works on macOS, Linux, and Windows (with appropriate shells)
-- **Single Command Execution**: Optimized batching of tmux commands for better performance
-- **JSON Schema Validation**: IDE autocomplete and validation support via JSON schema
-- **Zero Configuration Start**: Works with sensible defaults out of the box
-- **tmux Compatibility**: Full pass-through support for native tmux commands
+- **Fast apply**: Batches multiple tmux operations into a single `tmux` invocation
+- **Editor schema support (JSON)**: `schema.json` enables IDE autocomplete/validation (no runtime schema validation)
+- **tmux compatibility**: If the first argument isn’t an `ntmux` subcommand, arguments are passed through to `tmux`
 
 ## Requirements
 
 - **Go 1.23.4+** (for building from source)
 - **tmux** (must be installed and available in PATH)
-- Unix-like environment (macOS, Linux, WSL, or Windows with PowerShell)
+- **A shell**:
+  - On Unix, ntmux uses `$SHELL` (falls back to `/bin/sh`).
+  - On Windows, you’ll typically want to run under WSL, or ensure `$SHELL` points to `pwsh`/PowerShell.
 
 ## Installation
 
@@ -40,7 +43,7 @@ go install github.com/coeeter/ntmux@latest
 git clone https://github.com/coeeter/ntmux.git
 cd ntmux
 
-# Install using Make
+# Install using Make (installs to $(go env GOPATH)/bin)
 make install
 
 # Or build to ./tmp/ntmux
@@ -55,9 +58,9 @@ ntmux --help
 
 ## Quick Start
 
-### 1. Create a Configuration File
+### 1. Create a config file
 
-Create a `ntmux.json` file in your project directory:
+Create `ntmux.json` in your project directory:
 
 ```json
 {
@@ -65,7 +68,6 @@ Create a `ntmux.json` file in your project directory:
   "sessions": [
     {
       "name": "my-project",
-      "dir": ".",
       "default": true,
       "windows": [
         {
@@ -86,19 +88,19 @@ Create a `ntmux.json` file in your project directory:
 }
 ```
 
-### 2. Apply the Configuration
+### 2. Apply it
 
 ```bash
-# If ntmux.json exists in current directory
+# If ntmux.json or ntmux.yaml exists in the current directory
 ntmux
 
 # Or explicitly specify the file
 ntmux apply ntmux.json
 ```
 
-### 3. You're Done!
+### 3. You’re done
 
-ntmux will create your tmux session with all windows configured and attach you to the default session.
+ntmux will create any missing sessions from the template and attach to the default session.
 
 ## Configuration
 
@@ -106,8 +108,8 @@ ntmux will create your tmux session with all windows configured and attach you t
 
 ntmux supports both JSON and YAML formats:
 
-- `ntmux.json` (preferred)
-- `ntmux.yaml` or `ntmux.yml`
+- **Auto-discovered** (when running `ntmux` with no args): `ntmux.json`, `ntmux.yaml`, `ntmux.yml` (checked in that order)
+- **Supported when passed explicitly**: `.json`, `.yaml`, `.yml`
 
 ### Configuration Schema
 
@@ -116,15 +118,15 @@ ntmux supports both JSON and YAML formats:
   "$schema": "https://raw.githubusercontent.com/coeeter/ntmux/main/schema.json",
   "sessions": [
     {
-      "name": "session-name", // Required: Session identifier
-      "dir": "/path/to/directory", // Optional: Working directory (default: current directory)
-      "default": true, // Optional: Attach to this session on startup
+      "name": "session-name",
+      "dir": "/path/to/directory",
+      "default": true,
       "windows": [
         {
-          "name": "window-name", // Required: Window identifier
-          "dir": "/path/to/directory", // Optional: Window-specific directory
-          "cmd": "command to run", // Optional: Command to execute when window opens
-          "default": true // Optional: Select this window in the session
+          "name": "window-name",
+          "dir": "/path/to/directory",
+          "cmd": "command to run",
+          "default": true
         }
       ]
     }
@@ -154,24 +156,32 @@ ntmux supports both JSON and YAML formats:
 
 ### Default Behavior
 
-- If no session has `default: true`, the first session becomes the default
-- If no window has `default: true`, the first window becomes the default
-- Relative paths are resolved relative to the current working directory
+- **Default session**: If no session has `default: true`, the first session is treated as default (ntmux will attach to it).
+- **Default window**: If no window has `default: true`, the first window is selected.
+- **At least one window per session**: Each session must define at least one window (ntmux uses the first window to create the session).
+- **Directory resolution**:
+  - If a session `dir` is omitted, it defaults to your current working directory.
+  - If a window `dir` is omitted, it defaults to the session `dir`.
+  - Relative `dir` paths are resolved relative to your current working directory (not relative to the session `dir`).
+  - `~` is not expanded (use an absolute path or rely on your shell).
 
 ## Usage
 
 ### Commands
 
-#### Default Behavior
+#### `ntmux` (no args)
 
 ```bash
-# If ntmux.json or ntmux.yaml exists in current directory
+# If ntmux.json, ntmux.yaml, or ntmux.yml exists in current directory, apply it:
 ntmux
 ```
 
-When run without arguments, ntmux automatically searches for and applies `ntmux.json` or `ntmux.yaml` in the current directory.
+When run with no arguments:
 
-#### Apply Configuration
+- If `ntmux.json`, `ntmux.yaml`, or `ntmux.yml` exists in the current directory, ntmux applies it.
+- Otherwise, ntmux runs `tmux new-session -s <current-directory-name>`.
+
+#### Apply configuration (`apply`)
 
 ```bash
 # Apply default configuration file
@@ -180,9 +190,20 @@ ntmux apply
 # Apply specific configuration file
 ntmux apply path/to/template.json
 ntmux apply path/to/template.yaml
+ntmux apply path/to/template.yml
 ```
 
-#### Generate New Template
+#### Stop sessions (`stop`)
+
+```bash
+# Kill all sessions defined in the template (if they exist)
+ntmux stop
+
+# Or explicitly specify the file
+ntmux stop path/to/template.json
+```
+
+#### Generate a new template (`new-template`)
 
 ```bash
 # Generate JSON template (default)
@@ -195,14 +216,25 @@ ntmux new-template -f yaml
 
 The `new-template` command will:
 
-1. Check for custom templates in `~/.config/ntmux/template.{json,yaml}`
+1. Check for custom templates in `~/.config/ntmux/template.{json,yaml,yml}`
 2. Use custom template if found, otherwise use built-in defaults
-3. Create the template file in the current directory
+3. Create `ntmux.json` or `ntmux.yaml` in the current directory (fails if it already exists)
 
-#### Pass-Through to tmux
+#### Shell completion (`completion`)
+
+ntmux ships Cobra’s default completion command:
 
 ```bash
-# Any unrecognized command is passed to tmux
+ntmux completion zsh
+ntmux completion bash
+ntmux completion fish
+ntmux completion powershell
+```
+
+#### Pass-through to tmux
+
+```bash
+# If the first argument isn't an ntmux subcommand, args are passed to tmux
 ntmux list-sessions
 ntmux attach -t my-session
 ntmux kill-session -t old-session
@@ -373,19 +405,21 @@ Now `ntmux new-template` will use your custom template.
 
 ### Idempotent Sessions
 
-ntmux checks if sessions already exist before creating them:
+ntmux checks if a session already exists before creating it:
 
 ```bash
 # First run: creates sessions
 ntmux apply
 
-# Second run: skips existing sessions (no duplicates)
+# Second run: skips existing sessions (no duplicates, no updates)
 ntmux apply
 ```
 
+If you change windows/commands for an existing tmux session, ntmux will not update that session; you’ll need to kill it first (or create a new session name).
+
 ### Shell-Specific Commands
 
-ntmux automatically detects your shell and formats commands appropriately:
+ntmux uses your `$SHELL` (Unix) to wrap window commands and keep the window interactive after the command finishes:
 
 - **Unix shells**: Commands wrapped with `shell -c 'cmd; exec shell'`
 - **PowerShell**: Commands wrapped with `pwsh -NoExit -Command "& {cmd}"`
@@ -533,6 +567,10 @@ Ensure the `$schema` field is at the top of your configuration:
 ```
 
 VS Code should automatically fetch the schema. For other editors, check their JSON schema configuration.
+
+### `~` paths don't work as expected
+
+ntmux does not expand `~` in `dir` fields. Use absolute paths or keep paths relative to the directory you run `ntmux` from.
 
 ## License
 
