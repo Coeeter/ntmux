@@ -14,7 +14,7 @@ var ApplyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		path, err := getTemplatePath(args)
 		if err != nil {
-			cmd.Println("Error: No template file specified and no ntmux.json or ntmux.yaml found in the current directory.")
+			cmd.Println("Error: No template file specified and no ntmux.json, ntmux.yaml, or ntmux.yml found in the current directory.")
 			return
 		}
 
@@ -91,6 +91,11 @@ func getTemplatePath(args []string) (string, error) {
 	for _, entry := range entries {
 		if !entry.IsDir() && entry.Name() == "ntmux.yaml" {
 			return "ntmux.yaml", nil
+		}
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() && entry.Name() == "ntmux.yml" {
+			return "ntmux.yml", nil
 		}
 	}
 

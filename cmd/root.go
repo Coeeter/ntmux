@@ -75,7 +75,7 @@ func hasNtmuxConfigFileInRoot() bool {
 	}
 
 	for _, entry := range entries {
-		if !entry.IsDir() && (entry.Name() == "ntmux.json" || entry.Name() == "ntmux.yaml") {
+		if !entry.IsDir() && (entry.Name() == "ntmux.json" || entry.Name() == "ntmux.yaml" || entry.Name() == "ntmux.yml") {
 			return true
 		}
 	}
