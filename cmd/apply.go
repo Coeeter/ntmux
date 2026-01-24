@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"os"
+	"strings"
 
 	"github.com/coeeter/ntmux/internal/template"
 	"github.com/coeeter/ntmux/internal/tmux"
 	"github.com/spf13/cobra"
 )
+
+var sessionsFlag string
 
 var ApplyCmd = &cobra.Command{
 	Use:   "apply [template-file]",
@@ -33,7 +36,38 @@ var ApplyCmd = &cobra.Command{
 		shell := tmux.GetShell()
 		runner := tmux.NewRunner(shell)
 
+		// Parse session filter if provided
+		sessionFilter := make(map[string]bool)
+		if sessionsFlag != "" {
+			for _, name := range strings.Split(sessionsFlag, ",") {
+				sessionFilter[strings.TrimSpace(name)] = true
+			}
+		}
+
+		// Validate that all specified sessions exist in the template
+		if len(sessionFilter) > 0 {
+			templateSessions := make(map[string]bool)
+			for _, session := range templ.Sessions {
+				templateSessions[session.Name] = true
+			}
+			var invalidSessions []string
+			for name := range sessionFilter {
+				if !templateSessions[name] {
+					invalidSessions = append(invalidSessions, name)
+				}
+			}
+			if len(invalidSessions) > 0 {
+				cmd.Printf("Error: session(s) not found in template: %s\n", strings.Join(invalidSessions, ", "))
+				cmd.Println("Available sessions:", strings.Join(getSessionNames(templ.Sessions), ", "))
+				return
+			}
+		}
+
 		for _, session := range templ.Sessions {
+			// Skip if session filter is set and this session is not in it
+			if len(sessionFilter) > 0 && !sessionFilter[session.Name] {
+				continue
+			}
 			if tmux.HasSession(session.Name) {
 				continue
 			}
@@ -59,6 +93,10 @@ var ApplyCmd = &cobra.Command{
 
 		var defaultSession string
 		for _, session := range templ.Sessions {
+			// Only consider sessions that match the filter
+			if len(sessionFilter) > 0 && !sessionFilter[session.Name] {
+				continue
+			}
 			if session.Default {
 				defaultSession = session.Name
 				break
@@ -100,4 +138,16 @@ func getTemplatePath(args []string) (string, error) {
 	}
 
 	return "", os.ErrNotExist
+}
+
+func init() {
+	ApplyCmd.Flags().StringVarP(&sessionsFlag, "sessions", "s", "", "Comma-separated list of session names to create (e.g., --sessions=frontend,backend)")
+}
+
+func getSessionNames(sessions []template.Session) []string {
+	names := make([]string, len(sessions))
+	for i, s := range sessions {
+		names[i] = s.Name
+	}
+	return names
 }
