@@ -74,6 +74,11 @@ func (r *TmuxRunner) AttachSession(sessionName string) {
 	r.commands = append(r.commands, args)
 }
 
+func (r *TmuxRunner) SwitchClient(sessionName string) {
+	args := []string{"switch-client", "-t", sessionName}
+	r.commands = append(r.commands, args)
+}
+
 func (r *TmuxRunner) Execute() {
 	if len(r.commands) == 0 {
 		return

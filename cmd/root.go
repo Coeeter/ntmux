@@ -34,7 +34,20 @@ var RootCmd = &cobra.Command{
 			}
 
 			dirName := filepath.Base(cwd)
-			tmux.PassThrough([]string{"new-session", "-s", dirName})
+
+			instanceExists := tmux.HasSession(dirName)
+			runner := tmux.NewRunner(tmux.GetShell())
+			if !instanceExists {
+				runner.NewSession(dirName, cwd, "", "", true)
+			}
+
+			if tmux.IsInTmux() {
+				runner.SwitchClient(dirName)
+			} else {
+				runner.AttachSession(dirName)
+			}
+
+			runner.Execute()
 			return
 		}
 

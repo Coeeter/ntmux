@@ -104,7 +104,11 @@ var ApplyCmd = &cobra.Command{
 		}
 
 		if defaultSession != "" {
-			runner.AttachSession(defaultSession)
+			if tmux.IsInTmux() {
+				runner.SwitchClient(defaultSession)
+			} else {
+				runner.AttachSession(defaultSession)
+			}
 		}
 
 		runner.Execute()
