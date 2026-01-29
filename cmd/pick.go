@@ -10,7 +10,7 @@ import (
 
 var PickCmd = &cobra.Command{
 	Use:   "pick",
-	Short: "List tmux sessions",
+	Short: "Interactively pick and attach to a tmux session using fzf",
 	Run: func(cmd *cobra.Command, args []string) {
 		doesFxfExist, err := exec.LookPath("fzf")
 		if err != nil || doesFxfExist == "" {
