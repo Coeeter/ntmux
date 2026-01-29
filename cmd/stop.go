@@ -14,7 +14,25 @@ var StopCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		path, err := getTemplatePath(args)
 		if err != nil {
-			cmd.Println("Error: No template file specified and no ntmux.json, ntmux.yaml, or ntmux.yml found in the current directory.")
+			if !tmux.IsInTmux() {
+				cmd.Println("Error: No template file specified and no ntmux.json, ntmux.yaml, or ntmux.yml found in the current directory.")
+				return
+			}
+
+			currentSession, err := tmux.GetCurrentSessionName()
+			if currentSession == "" || err != nil {
+				cmd.Println("Error: Unable to determine current tmux session name.")
+				return
+			}
+
+			if tmux.HasSession(currentSession) {
+				runner := tmux.NewRunner(tmux.GetShell())
+				runner.KillSession(currentSession)
+				runner.Execute()
+			} else {
+				cmd.Printf("Error: No active tmux session named '%s' found.\n", currentSession)
+			}
+
 			return
 		}
 

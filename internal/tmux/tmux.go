@@ -3,6 +3,7 @@ package tmux
 import (
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func PassThrough(args []string) {
@@ -24,6 +25,14 @@ func HasSession(sessionName string) bool {
 		return false
 	}
 	return string(output) == ""
+}
+
+func GetCurrentSessionName() (string, error) {
+	output, err := PassThroughWithOutput([]string{"display-message", "-p", "#{session_name}"})
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(output)), nil
 }
 
 func IsInTmux() bool {
