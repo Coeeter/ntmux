@@ -78,7 +78,7 @@ var ApplyCmd = &cobra.Command{
 				if i == 0 {
 					continue
 				}
-				runner.NewWindow(session.Name, window.Name, window.Dir, window.Cmd)
+				runner.NewWindowSendKeys(session.Name, window.Name, window.Dir, window.Cmd)
 			}
 
 			defaultWindow := session.Windows[0]

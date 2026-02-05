@@ -73,6 +73,16 @@ func (r *TmuxRunner) NewWindow(sessionName, windowName, rootDir, command string)
 	r.commands = append(r.commands, args)
 }
 
+func (r *TmuxRunner) NewWindowSendKeys(sessionName, windowName, rootDir, command string) {
+	args := []string{"new-window", "-t", sessionName, "-n", windowName, "-c", rootDir}
+	r.commands = append(r.commands, args)
+
+	if command != "" {
+		sendKeysArgs := []string{"send-keys", "-t", sessionName + ":" + windowName, command, "C-m"}
+		r.commands = append(r.commands, sendKeysArgs)
+	}
+}
+
 func (r *TmuxRunner) SelectWindow(sessionName, windowName string) {
 	args := []string{"select-window", "-t", sessionName + ":" + windowName}
 	r.commands = append(r.commands, args)
