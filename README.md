@@ -2,6 +2,8 @@
 
 A declarative tmux session manager with a `tmux`-compatible CLI.
 
+![ntmux demo](./docs/demo.svg)
+
 ## Overview
 
 **ntmux** is a Go-based CLI tool that wraps `tmux`:
@@ -574,7 +576,7 @@ ntmux does not expand `~` in `dir` fields. Use absolute paths or keep paths rela
 
 ## License
 
-This project is open source. Please check the repository for license details.
+[MIT](./LICENSE)
 
 ## Author
 
